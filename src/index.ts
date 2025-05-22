@@ -1,3 +1,3 @@
-export * from './openrouter-facade';
-export * from './openrouter-provider';
+export * from './burncloud-facade';
+export * from './burncloud-provider';
 export * from './types';

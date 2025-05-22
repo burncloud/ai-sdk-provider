@@ -1,8 +1,8 @@
-import { convertToOpenRouterChatMessages } from './convert-to-openrouter-chat-messages';
+import { convertToBurnCloudChatMessages } from './convert-to-burncloud-chat-messages';
 
 describe('user messages', () => {
   it('should convert messages with image parts to multiple parts', async () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -31,7 +31,7 @@ describe('user messages', () => {
   });
 
   it('should convert messages with only a text part to a string content', async () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [{ type: 'text', text: 'Hello' }],
@@ -44,7 +44,7 @@ describe('user messages', () => {
 
 describe('cache control', () => {
   it('should pass cache control from system message provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'system',
         content: 'System prompt',
@@ -66,7 +66,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control from user message provider metadata (single text part)', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [{ type: 'text', text: 'Hello' }],
@@ -88,7 +88,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control from user message provider metadata (multiple parts)', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -127,7 +127,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control to multiple image parts from user message provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -176,7 +176,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control to file parts from user message provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -186,7 +186,7 @@ describe('cache control', () => {
             data: 'ZmlsZSBjb250ZW50',
             mimeType: 'text/plain',
             providerMetadata: {
-              openrouter: {
+              burncloud: {
                 filename: 'file.txt',
               },
             },
@@ -223,7 +223,7 @@ describe('cache control', () => {
   });
 
   it('should handle mixed part-specific and message-level cache control for multiple parts', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -247,11 +247,10 @@ describe('cache control', () => {
             data: 'ZmlsZSBjb250ZW50',
             mimeType: 'text/plain',
             providerMetadata: {
-              openrouter: {
+              burncloud: {
                 filename: 'file.txt',
               },
             },
-            // No part-specific provider metadata
           },
         ],
         providerMetadata: {
@@ -290,7 +289,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control from individual content part provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'user',
         content: [
@@ -331,7 +330,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control from assistant message provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'assistant',
         content: [{ type: 'text', text: 'Assistant response' }],
@@ -353,7 +352,7 @@ describe('cache control', () => {
   });
 
   it('should pass cache control from tool message provider metadata', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'tool',
         content: [
@@ -384,7 +383,7 @@ describe('cache control', () => {
   });
 
   it('should support the alias cache_control field', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'system',
         content: 'System prompt',
@@ -406,7 +405,7 @@ describe('cache control', () => {
   });
 
   it('should support cache control on last message in content array', () => {
-    const result = convertToOpenRouterChatMessages([
+    const result = convertToBurnCloudChatMessages([
       {
         role: 'system',
         content: 'System prompt',

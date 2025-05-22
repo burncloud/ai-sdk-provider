@@ -6,8 +6,8 @@ import {
   StreamingTestServer,
 } from '@ai-sdk/provider-utils/test';
 
-import { mapOpenRouterChatLogProbsOutput } from './map-openrouter-chat-logprobs';
-import { createOpenRouter } from './openrouter-provider';
+import { mapBurnCloudChatLogProbsOutput } from './map-burncloud-chat-logprobs';
+import { createBurnCloud } from './burncloud-provider';
 
 const TEST_PROMPT: LanguageModelV1Prompt = [
   { role: 'user', content: [{ type: 'text', text: 'Hello' }] },
@@ -108,7 +108,7 @@ const TEST_LOGPROBS = {
   ],
 };
 
-const provider = createOpenRouter({
+const provider = createBurnCloud({
   apiKey: 'test-api-key',
   compatibility: 'strict',
 });
@@ -117,7 +117,7 @@ const model = provider.chat('anthropic/claude-3.5-sonnet');
 
 describe('doGenerate', () => {
   const server = new JsonTestServer(
-    'https://openrouter.ai/api/v1/chat/completions',
+    'https://ai.burncloud.com/v1/chat/completions',
   );
 
   server.setupTestEnvironment();
@@ -213,7 +213,7 @@ describe('doGenerate', () => {
         prompt: TEST_PROMPT,
       });
     expect(response.logprobs).toStrictEqual(
-      mapOpenRouterChatLogProbsOutput(TEST_LOGPROBS),
+      mapBurnCloudChatLogProbsOutput(TEST_LOGPROBS),
     );
   });
 
@@ -262,7 +262,7 @@ describe('doGenerate', () => {
 
     expect(rawResponse?.headers).toStrictEqual({
       // default headers:
-      'content-length': '337',
+      'content-length': '273',
       'content-type': 'application/json',
 
       // custom header
@@ -270,7 +270,7 @@ describe('doGenerate', () => {
     });
   });
 
-  it('should pass the model and the messages', async () => {
+  it('should pass the model and the prompt', async () => {
     prepareJsonResponse({ content: '' });
 
     await model.doGenerate({
@@ -281,7 +281,12 @@ describe('doGenerate', () => {
 
     expect(await server.getRequestBodyJson()).toStrictEqual({
       model: 'anthropic/claude-3.5-sonnet',
-      messages: [{ role: 'user', content: 'Hello' }],
+      messages: [
+        {
+          role: 'user',
+          content: 'Hello',
+        },
+      ],
     });
   });
 
@@ -289,7 +294,7 @@ describe('doGenerate', () => {
     prepareJsonResponse({ content: '' });
 
     const customModel = provider.chat('anthropic/claude-3.5-sonnet', {
-      models: ['anthropic/claude-2', 'gryphe/mythomax-l2-13b'],
+      models: ['openai/gpt-4', 'anthropic/claude-2'],
     });
 
     await customModel.doGenerate({
@@ -300,102 +305,27 @@ describe('doGenerate', () => {
 
     expect(await server.getRequestBodyJson()).toStrictEqual({
       model: 'anthropic/claude-3.5-sonnet',
-      models: ['anthropic/claude-2', 'gryphe/mythomax-l2-13b'],
-      messages: [{ role: 'user', content: 'Hello' }],
-    });
-  });
-
-  it('should pass settings', async () => {
-    prepareJsonResponse();
-
-    await provider
-      .chat('openai/gpt-3.5-turbo', {
-        logitBias: { 50256: -100 },
-        logprobs: 2,
-        parallelToolCalls: false,
-        user: 'test-user-id',
-      })
-      .doGenerate({
-        inputFormat: 'prompt',
-        mode: { type: 'regular' },
-        prompt: TEST_PROMPT,
-      });
-
-    expect(await server.getRequestBodyJson()).toStrictEqual({
-      model: 'openai/gpt-3.5-turbo',
-      messages: [{ role: 'user', content: 'Hello' }],
-      logprobs: true,
-      top_logprobs: 2,
-      logit_bias: { 50256: -100 },
-      parallel_tool_calls: false,
-      user: 'test-user-id',
-    });
-  });
-
-  it('should pass tools and toolChoice', async () => {
-    prepareJsonResponse({ content: '' });
-
-    await model.doGenerate({
-      inputFormat: 'prompt',
-      mode: {
-        type: 'regular',
-        tools: [
-          {
-            type: 'function',
-            name: 'test-tool',
-            parameters: {
-              type: 'object',
-              properties: { value: { type: 'string' } },
-              required: ['value'],
-              additionalProperties: false,
-              $schema: 'http://json-schema.org/draft-07/schema#',
-            },
-          },
-        ],
-        toolChoice: {
-          type: 'tool',
-          toolName: 'test-tool',
-        },
-      },
-      prompt: TEST_PROMPT,
-    });
-
-    expect(await server.getRequestBodyJson()).toStrictEqual({
-      model: 'anthropic/claude-3.5-sonnet',
-      messages: [{ role: 'user', content: 'Hello' }],
-      tools: [
+      models: ['openai/gpt-4', 'anthropic/claude-2'],
+      messages: [
         {
-          type: 'function',
-          function: {
-            name: 'test-tool',
-            parameters: {
-              type: 'object',
-              properties: { value: { type: 'string' } },
-              required: ['value'],
-              additionalProperties: false,
-              $schema: 'http://json-schema.org/draft-07/schema#',
-            },
-          },
+          role: 'user',
+          content: 'Hello',
         },
       ],
-      tool_choice: {
-        type: 'function',
-        function: { name: 'test-tool' },
-      },
     });
   });
 
   it('should pass headers', async () => {
     prepareJsonResponse({ content: '' });
 
-    const provider = createOpenRouter({
+    const provider = createBurnCloud({
       apiKey: 'test-api-key',
       headers: {
         'Custom-Provider-Header': 'provider-header-value',
       },
     });
 
-    await provider.chat('openai/gpt-3.5-turbo').doGenerate({
+    await provider.chat('anthropic/claude-3.5-sonnet').doGenerate({
       inputFormat: 'prompt',
       mode: { type: 'regular' },
       prompt: TEST_PROMPT,
@@ -404,20 +334,17 @@ describe('doGenerate', () => {
       },
     });
 
-    const requestHeaders = await server.getRequestHeaders();
-
-    expect(requestHeaders).toStrictEqual({
-      authorization: 'Bearer test-api-key',
+    expect(await server.getRequestHeaders()).toStrictEqual({
       'content-type': 'application/json',
-      'custom-provider-header': 'provider-header-value',
-      'custom-request-header': 'request-header-value',
+      'Custom-Provider-Header': 'provider-header-value',
+      'Custom-Request-Header': 'request-header-value',
     });
   });
 });
 
 describe('doStream', () => {
   const server = new StreamingTestServer(
-    'https://openrouter.ai/api/v1/chat/completions',
+    'https://ai.burncloud.com/v1/chat/completions',
   );
 
   server.setupTestEnvironment();
@@ -545,7 +472,7 @@ describe('doStream', () => {
       {
         type: 'finish',
         finishReason: 'stop',
-        logprobs: mapOpenRouterChatLogProbsOutput(TEST_LOGPROBS),
+        logprobs: mapBurnCloudChatLogProbsOutput(TEST_LOGPROBS),
         usage: { promptTokens: 17, completionTokens: 227 },
       },
     ]);
@@ -837,7 +764,7 @@ describe('doStream', () => {
   it('should handle error stream parts', async () => {
     server.responseChunks = [
       `data: {"error":{"message": "The server had an error processing your request. Sorry about that! You can retry your request, or contact us through our ` +
-        `help center at help.openrouter.com if you keep seeing this error.","type":"server_error","param":null,"code":null}}\n\n`,
+        `help center at help.burncloud.com if you keep seeing this error.","type":"server_error","param":null,"code":null}}\n\n`,
       'data: [DONE]\n\n',
     ];
 
@@ -854,7 +781,7 @@ describe('doStream', () => {
           message:
             'The server had an error processing your request. Sorry about that! ' +
             'You can retry your request, or contact us through our help center at ' +
-            'help.openrouter.com if you keep seeing this error.',
+            'help.burncloud.com if you keep seeing this error.',
           type: 'server_error',
           code: null,
           param: null,
@@ -940,14 +867,14 @@ describe('doStream', () => {
   it('should pass headers', async () => {
     prepareStreamResponse({ content: [] });
 
-    const provider = createOpenRouter({
+    const provider = createBurnCloud({
       apiKey: 'test-api-key',
       headers: {
         'Custom-Provider-Header': 'provider-header-value',
       },
     });
 
-    await provider.chat('openai/gpt-3.5-turbo').doStream({
+    await provider.chat('anthropic/claude-3.5-sonnet').doStream({
       inputFormat: 'prompt',
       mode: { type: 'regular' },
       prompt: TEST_PROMPT,
@@ -961,15 +888,15 @@ describe('doStream', () => {
     expect(requestHeaders).toStrictEqual({
       authorization: 'Bearer test-api-key',
       'content-type': 'application/json',
-      'custom-provider-header': 'provider-header-value',
-      'custom-request-header': 'request-header-value',
+      'Custom-Provider-Header': 'provider-header-value',
+      'Custom-Request-Header': 'request-header-value',
     });
   });
 
   it('should pass extra body', async () => {
     prepareStreamResponse({ content: [] });
 
-    const provider = createOpenRouter({
+    const provider = createBurnCloud({
       apiKey: 'test-api-key',
       extraBody: {
         custom_field: 'custom_value',

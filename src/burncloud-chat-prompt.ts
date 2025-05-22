@@ -1,7 +1,7 @@
-// Type for OpenRouter Cache Control following Anthropic's pattern
-export type OpenRouterCacheControl = { type: 'ephemeral' };
+// Type for BurnCloud Cache Control following Anthropic's pattern
+export type BurnCloudCacheControl = { type: 'ephemeral' };
 
-export type OpenRouterChatPrompt = Array<ChatCompletionMessageParam>;
+export type BurnCloudChatPrompt = Array<ChatCompletionMessageParam>;
 
 export type ChatCompletionMessageParam =
   | ChatCompletionSystemMessageParam
@@ -12,13 +12,13 @@ export type ChatCompletionMessageParam =
 export interface ChatCompletionSystemMessageParam {
   role: 'system';
   content: string;
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export interface ChatCompletionUserMessageParam {
   role: 'user';
   content: string | Array<ChatCompletionContentPart>;
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export type ChatCompletionContentPart =
@@ -32,7 +32,7 @@ export interface ChatCompletionContentPartFile {
     filename: string;
     file_data: string;
   };
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export interface ChatCompletionContentPartImage {
@@ -40,20 +40,20 @@ export interface ChatCompletionContentPartImage {
   image_url: {
     url: string;
   };
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export interface ChatCompletionContentPartText {
   type: 'text';
   text: string;
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export interface ChatCompletionAssistantMessageParam {
   role: 'assistant';
   content?: string | null;
   tool_calls?: Array<ChatCompletionMessageToolCall>;
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
 
 export interface ChatCompletionMessageToolCall {
@@ -69,5 +69,5 @@ export interface ChatCompletionToolMessageParam {
   role: 'tool';
   content: string;
   tool_call_id: string;
-  cache_control?: OpenRouterCacheControl;
+  cache_control?: BurnCloudCacheControl;
 }
