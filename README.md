@@ -2,6 +2,10 @@
 
 The BurnCloud provider for the Vercel AI SDK gives access to over 100 large language model on the BurnCloud chat and completion APIs.
 
+# Supported models
+
+You can find the latest list of models supported by [BurnCloud](https://ai.burncloud.com/pricing) here.
+
 Package require:
 
 - ai:4.1.46
