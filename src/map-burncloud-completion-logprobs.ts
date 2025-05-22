@@ -1,11 +1,11 @@
-type OpenRouterCompletionLogProps = {
+type BurnCloudCompletionLogProps = {
   tokens: string[];
   token_logprobs: number[];
   top_logprobs: Record<string, number>[] | null;
 };
 
-export function mapOpenRouterCompletionLogProbs(
-  logprobs: OpenRouterCompletionLogProps | null | undefined,
+export function mapBurnCloudCompletionLogProbs(
+  logprobs: BurnCloudCompletionLogProps | null | undefined,
 ) {
   return logprobs?.tokens.map((token, index) => ({
     token,

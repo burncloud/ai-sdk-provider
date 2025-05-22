@@ -4,7 +4,7 @@ import { createTestServer } from '@ai-sdk/provider-utils/test';
 import { streamText } from 'ai';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createOpenRouter } from './openrouter-provider';
+import { createBurnCloud } from './burncloud-provider';
 
 // Add type assertions for the mocked classes
 const TEST_MESSAGES: LanguageModelV1Prompt = [
@@ -13,7 +13,7 @@ const TEST_MESSAGES: LanguageModelV1Prompt = [
 
 describe('providerOptions', () => {
   const server = createTestServer({
-    'https://openrouter.ai/api/v1/chat/completions': {
+    'https://ai.burncloud.com/v1/chat/completions': {
       response: {
         type: 'stream-chunks',
         chunks: [],
@@ -25,17 +25,17 @@ describe('providerOptions', () => {
     vi.clearAllMocks();
   });
 
-  it('should set providerOptions openrouter to extra body', async () => {
-    const openrouter = createOpenRouter({
+  it('should set providerOptions burncloud to extra body', async () => {
+    const burncloud = createBurnCloud({
       apiKey: 'test',
     });
-    const model = openrouter('anthropic/claude-3.7-sonnet');
+    const model = burncloud('anthropic/claude-3.7-sonnet');
 
     await streamText({
       model,
       messages: TEST_MESSAGES,
       providerOptions: {
-        openrouter: {
+        burncloud: {
           reasoning: {
             max_tokens: 1000,
           },

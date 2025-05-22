@@ -5,7 +5,7 @@ import {
   UnsupportedFunctionalityError,
 } from '@ai-sdk/provider';
 
-export function convertToOpenRouterCompletionPrompt({
+export function convertToBurnCloudCompletionPrompt({
   prompt,
   inputFormat,
   user = 'user',

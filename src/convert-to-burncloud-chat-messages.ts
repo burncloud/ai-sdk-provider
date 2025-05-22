@@ -4,31 +4,31 @@ import type {
 } from '@ai-sdk/provider';
 import type {
   ChatCompletionContentPart,
-  OpenRouterChatPrompt,
-} from './openrouter-chat-prompt';
+  BurnCloudChatPrompt,
+} from './burncloud-chat-prompt';
 
 import { convertUint8ArrayToBase64 } from '@ai-sdk/provider-utils';
 
-// Type for OpenRouter Cache Control following Anthropic's pattern
-export type OpenRouterCacheControl = { type: 'ephemeral' };
+// Type for BurnCloud Cache Control following Anthropic's pattern
+export type BurnCloudCacheControl = { type: 'ephemeral' };
 
 function getCacheControl(
   providerMetadata: LanguageModelV1ProviderMetadata | undefined,
-): OpenRouterCacheControl | undefined {
+): BurnCloudCacheControl | undefined {
   const anthropic = providerMetadata?.anthropic;
-  const openrouter = providerMetadata?.openrouter;
+  const burncloud = providerMetadata?.burncloud;
 
   // Allow both cacheControl and cache_control:
-  return (openrouter?.cacheControl ??
-    openrouter?.cache_control ??
+  return (burncloud?.cacheControl ??
+    burncloud?.cache_control ??
     anthropic?.cacheControl ??
-    anthropic?.cache_control) as OpenRouterCacheControl | undefined;
+    anthropic?.cache_control) as BurnCloudCacheControl | undefined;
 }
 
-export function convertToOpenRouterChatMessages(
+export function convertToBurnCloudChatMessages(
   prompt: LanguageModelV1Prompt,
-): OpenRouterChatPrompt {
-  const messages: OpenRouterChatPrompt = [];
+): BurnCloudChatPrompt {
+  const messages: BurnCloudChatPrompt = [];
 
   for (const { role, content, providerMetadata } of prompt) {
     switch (role) {
@@ -88,7 +88,7 @@ export function convertToOpenRouterChatMessages(
                   type: 'file' as const,
                   file: {
                     filename: String(
-                      part.providerMetadata?.openrouter?.filename,
+                      part.providerMetadata?.burncloud?.filename,
                     ),
                     file_data:
                       part.data instanceof Uint8Array

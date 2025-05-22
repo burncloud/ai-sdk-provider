@@ -4,13 +4,13 @@ import type { LanguageModelV1 } from '@ai-sdk/provider';
 export type { LanguageModelV1 };
 
 // Export our model types with explicit type constraints
-export type OpenRouterLanguageModel = LanguageModelV1;
+export type BurnCloudLanguageModel = LanguageModelV1;
 
-export type OpenRouterProviderOptions = {
+export type BurnCloudProviderOptions = {
   models?: string[];
 
   /**
-   * https://openrouter.ai/docs/use-cases/reasoning-tokens
+   * https://ai.burncloud.com/docs/use-cases/reasoning-tokens
    * One of `max_tokens` or `effort` is required.
    * If `exclude` is true, reasoning will be removed from the response. Default is false.
    */
@@ -27,12 +27,12 @@ export type OpenRouterProviderOptions = {
 
   /**
    * A unique identifier representing your end-user, which can
-   * help OpenRouter to monitor and detect abuse.
+   * help BurnCloud to monitor and detect abuse.
    */
   user?: string;
 };
 
-export type OpenRouterSharedSettings = OpenRouterProviderOptions & {
+export type BurnCloudSharedSettings = BurnCloudProviderOptions & {
   /**
    * @deprecated use `reasoning` instead
    */

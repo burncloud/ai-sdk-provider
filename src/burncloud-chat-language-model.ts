@@ -8,9 +8,9 @@ import type {
 } from '@ai-sdk/provider';
 import type { ParseResult } from '@ai-sdk/provider-utils';
 import type {
-  OpenRouterChatModelId,
-  OpenRouterChatSettings,
-} from './openrouter-chat-settings';
+  BurnCloudChatModelId,
+  BurnCloudChatSettings,
+} from './burncloud-chat-settings';
 
 import {
   InvalidResponseDataError,
@@ -26,13 +26,13 @@ import {
 } from '@ai-sdk/provider-utils';
 import { z } from 'zod';
 
-import { convertToOpenRouterChatMessages } from './convert-to-openrouter-chat-messages';
-import { mapOpenRouterChatLogProbsOutput } from './map-openrouter-chat-logprobs';
-import { mapOpenRouterFinishReason } from './map-openrouter-finish-reason';
+import { convertToBurnCloudChatMessages } from './convert-to-burncloud-chat-messages';
+import { mapBurnCloudChatLogProbsOutput } from './map-burncloud-chat-logprobs';
+import { mapBurnCloudFinishReason } from './map-burncloud-finish-reason';
 import {
-  OpenRouterErrorResponseSchema,
-  openrouterFailedResponseHandler,
-} from './openrouter-error';
+  BurnCloudErrorResponseSchema,
+  burncloudFailedResponseHandler,
+} from './burncloud-error';
 
 function isFunctionTool(
   tool: LanguageModelV1FunctionTool | LanguageModelV1ProviderDefinedTool,
@@ -40,7 +40,7 @@ function isFunctionTool(
   return 'parameters' in tool;
 }
 
-type OpenRouterChatConfig = {
+type BurnCloudChatConfig = {
   provider: string;
   compatibility: 'strict' | 'compatible';
   headers: () => Record<string, string | undefined>;
@@ -49,19 +49,19 @@ type OpenRouterChatConfig = {
   extraBody?: Record<string, unknown>;
 };
 
-export class OpenRouterChatLanguageModel implements LanguageModelV1 {
+export class BurnCloudChatLanguageModel implements LanguageModelV1 {
   readonly specificationVersion = 'v1';
   readonly defaultObjectGenerationMode = 'tool';
 
-  readonly modelId: OpenRouterChatModelId;
-  readonly settings: OpenRouterChatSettings;
+  readonly modelId: BurnCloudChatModelId;
+  readonly settings: BurnCloudChatSettings;
 
-  private readonly config: OpenRouterChatConfig;
+  private readonly config: BurnCloudChatConfig;
 
   constructor(
-    modelId: OpenRouterChatModelId,
-    settings: OpenRouterChatSettings,
-    config: OpenRouterChatConfig,
+    modelId: BurnCloudChatModelId,
+    settings: BurnCloudChatSettings,
+    config: BurnCloudChatConfig,
   ) {
     this.modelId = modelId;
     this.settings = settings;
@@ -87,7 +87,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
     providerMetadata,
   }: Parameters<LanguageModelV1['doGenerate']>[0]) {
     const type = mode.type;
-    const extraCallingBody = providerMetadata?.['openrouter'] ?? {};
+    const extraCallingBody = providerMetadata?.['burncloud'] ?? {};
 
     const baseArgs = {
       // model id:
@@ -125,9 +125,9 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
       top_k: topK,
 
       // messages:
-      messages: convertToOpenRouterChatMessages(prompt),
+      messages: convertToBurnCloudChatMessages(prompt),
 
-      // OpenRouter specific settings:
+      // BurnCloud specific settings:
       include_reasoning: this.settings.includeReasoning,
       reasoning: this.settings.reasoning,
 
@@ -187,9 +187,9 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
       }),
       headers: combineHeaders(this.config.headers(), options.headers),
       body: args,
-      failedResponseHandler: openrouterFailedResponseHandler,
+      failedResponseHandler: burncloudFailedResponseHandler,
       successfulResponseHandler: createJsonResponseHandler(
-        OpenRouterNonStreamChatCompletionResponseSchema,
+        BurnCloudNonStreamChatCompletionResponseSchema,
       ),
       abortSignal: options.abortSignal,
       fetch: this.config.fetch,
@@ -215,7 +215,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
         toolName: toolCall.function.name,
         args: toolCall.function.arguments!,
       })),
-      finishReason: mapOpenRouterFinishReason(choice.finish_reason),
+      finishReason: mapBurnCloudFinishReason(choice.finish_reason),
       usage: {
         promptTokens: response.usage?.prompt_tokens ?? 0,
         completionTokens: response.usage?.completion_tokens ?? 0,
@@ -223,7 +223,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
       rawCall: { rawPrompt, rawSettings },
       rawResponse: { headers: responseHeaders },
       warnings: [],
-      logprobs: mapOpenRouterChatLogProbsOutput(choice.logprobs),
+      logprobs: mapBurnCloudChatLogProbsOutput(choice.logprobs),
     };
   }
 
@@ -248,9 +248,9 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
             ? { include_usage: true }
             : undefined,
       },
-      failedResponseHandler: openrouterFailedResponseHandler,
+      failedResponseHandler: burncloudFailedResponseHandler,
       successfulResponseHandler: createEventSourceResponseHandler(
-        OpenRouterStreamChatCompletionChunkSchema,
+        BurnCloudStreamChatCompletionChunkSchema,
       ),
       abortSignal: options.abortSignal,
       fetch: this.config.fetch,
@@ -280,7 +280,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
       stream: response.pipeThrough(
         new TransformStream<
           ParseResult<
-            z.infer<typeof OpenRouterStreamChatCompletionChunkSchema>
+            z.infer<typeof BurnCloudStreamChatCompletionChunkSchema>
           >,
           LanguageModelV1StreamPart
         >({
@@ -325,7 +325,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
             const choice = value.choices[0];
 
             if (choice?.finish_reason != null) {
-              finishReason = mapOpenRouterFinishReason(choice.finish_reason);
+              finishReason = mapBurnCloudFinishReason(choice.finish_reason);
             }
 
             if (choice?.delta == null) {
@@ -348,7 +348,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
               });
             }
 
-            const mappedLogprobs = mapOpenRouterChatLogProbsOutput(
+            const mappedLogprobs = mapBurnCloudChatLogProbsOutput(
               choice?.logprobs,
             );
             if (mappedLogprobs?.length) {
@@ -360,7 +360,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
               for (const toolCallDelta of delta.tool_calls) {
                 const index = toolCallDelta.index;
 
-                // Tool call start. OpenRouter returns all information except the arguments in the first chunk.
+                // Tool call start. BurnCloud returns all information except the arguments in the first chunk.
                 if (toolCalls[index] == null) {
                   if (toolCallDelta.type !== 'function') {
                     throw new InvalidResponseDataError({
@@ -506,7 +506,7 @@ export class OpenRouterChatLanguageModel implements LanguageModelV1 {
   }
 }
 
-const OpenRouterChatCompletionBaseResponseSchema = z.object({
+const BurnCloudChatCompletionBaseResponseSchema = z.object({
   id: z.string().optional(),
   model: z.string().optional(),
   usage: z
@@ -520,8 +520,8 @@ const OpenRouterChatCompletionBaseResponseSchema = z.object({
 
 // limited version of the schema, focussed on what is needed for the implementation
 // this approach limits breakages when the API changes and increases efficiency
-const OpenRouterNonStreamChatCompletionResponseSchema =
-  OpenRouterChatCompletionBaseResponseSchema.extend({
+const BurnCloudNonStreamChatCompletionResponseSchema =
+  BurnCloudChatCompletionBaseResponseSchema.extend({
     choices: z.array(
       z.object({
         message: z.object({
@@ -568,8 +568,8 @@ const OpenRouterNonStreamChatCompletionResponseSchema =
 
 // limited version of the schema, focussed on what is needed for the implementation
 // this approach limits breakages when the API changes and increases efficiency
-const OpenRouterStreamChatCompletionChunkSchema = z.union([
-  OpenRouterChatCompletionBaseResponseSchema.extend({
+const BurnCloudStreamChatCompletionChunkSchema = z.union([
+  BurnCloudChatCompletionBaseResponseSchema.extend({
     choices: z.array(
       z.object({
         delta: z
@@ -615,7 +615,7 @@ const OpenRouterStreamChatCompletionChunkSchema = z.union([
       }),
     ),
   }),
-  OpenRouterErrorResponseSchema,
+  BurnCloudErrorResponseSchema,
 ]);
 
 function prepareToolsAndToolChoice(
