@@ -1,156 +1,72 @@
-# OpenRouter Provider for Vercel AI SDK
+# BurnCloud Provider for Vercel AI SDK
 
-The [OpenRouter](https://openrouter.ai/) provider for the [Vercel AI SDK](https://sdk.vercel.ai/docs) gives access to over 300 large language model on the OpenRouter chat and completion APIs.
+The BurnCloud provider for the Vercel AI SDK gives access to over 100 large language model on the BurnCloud chat and completion APIs.
 
-## Setup
+Package require:
 
-```bash
-# For pnpm
-pnpm add @openrouter/ai-sdk-provider
+- ai:4.1.46
+- @burncloud/ai-sdk-provider:1.0.2
 
-# For npm
-npm install @openrouter/ai-sdk-provider
-
-# For yarn
-yarn add @openrouter/ai-sdk-provider
-```
-
-## Provider Instance
-
-You can import the default provider instance `openrouter` from `@openrouter/ai-sdk-provider`:
+Example:
 
 ```ts
-import { openrouter } from '@openrouter/ai-sdk-provider';
-```
-
-## Example
-
-```ts
-import { openrouter } from '@openrouter/ai-sdk-provider';
-import { generateText } from 'ai';
-
-const { text } = await generateText({
-  model: openrouter('openai/gpt-4o'),
-  prompt: 'Write a vegetarian lasagna recipe for 4 people.',
-});
-```
-
-## Supported models
-
-This list is not a definitive list of models supported by OpenRouter, as it constantly changes as we add new models (and deprecate old ones) to our system.  
-You can find the latest list of models supported by OpenRouter [here](https://openrouter.ai/models).
-
-You can find the latest list of tool-supported models supported by OpenRouter [here](https://openrouter.ai/models?order=newest&supported_parameters=tools). (Note: This list may contain models that are not compatible with the AI SDK.)
-
-## Passing Extra Body to OpenRouter
-
-There are 3 ways to pass extra body to OpenRouter:
-
-1. Via the `providerOptions.openrouter` property:
-
-   ```typescript
-   import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-   import { streamText } from 'ai';
-
-   const openrouter = createOpenRouter({ apiKey: 'your-api-key' });
-   const model = openrouter('anthropic/claude-3.7-sonnet:thinking');
-   await streamText({
-     model,
-     messages: [{ role: 'user', content: 'Hello' }],
-     providerOptions: {
-       openrouter: {
-         reasoning: {
-           max_tokens: 10,
-         },
-       },
-     },
-   });
-   ```
-
-2. Via the `extraBody` property in the model settings:
-
-   ```typescript
-   import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-   import { streamText } from 'ai';
-
-   const openrouter = createOpenRouter({ apiKey: 'your-api-key' });
-   const model = openrouter('anthropic/claude-3.7-sonnet:thinking', {
-     extraBody: {
-       reasoning: {
-         max_tokens: 10,
-       },
-     },
-   });
-   await streamText({
-     model,
-     messages: [{ role: 'user', content: 'Hello' }],
-   });
-   ```
-
-3. Via the `extraBody` property in the model factory.
-
-   ```typescript
-   import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-   import { streamText } from 'ai';
-
-   const openrouter = createOpenRouter({
-     apiKey: 'your-api-key',
-     extraBody: {
-       reasoning: {
-         max_tokens: 10,
-       },
-     },
-   });
-   const model = openrouter('anthropic/claude-3.7-sonnet:thinking');
-   await streamText({
-     model,
-     messages: [{ role: 'user', content: 'Hello' }],
-   });
-   ```
-
-## Anthropic Prompt Caching
-
-You can include Anthropic-specific options directly in your messages when using functions like `streamText`. The OpenRouter provider will automatically convert these messages to the correct format internally.
-
-### Basic Usage
-
-```typescript
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createBurnCloud } from '@burncloud/ai-sdk-provider';
 import { streamText } from 'ai';
 
-const openrouter = createOpenRouter({ apiKey: 'your-api-key' });
-const model = openrouter('anthropic/<supported-caching-model>');
-
-await streamText({
-  model,
-  messages: [
-    {
-      role: 'system',
-      content:
-        'You are a podcast summary assistant. You are detail oriented and critical about the content.',
+// how to get the api key? please visit https://ai.burncloud.com
+const burncloud = createBurnCloud({ apiKey: 'sk-123abc123abc123abc123abc123abc123abc' });
+const model = burncloud('claude-3-7-sonnet-20250219', {
+  extraBody: {
+    reasoning: {
+      max_tokens: 10,
     },
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'text',
-          text: 'Given the text body below:',
-        },
-        {
-          type: 'text',
-          text: `<LARGE BODY OF TEXT>`,
-          providerOptions: {
-            openrouter: {
-              cacheControl: { type: 'ephemeral' },
-            },
-          },
-        },
-        {
-          type: 'text',
-          text: 'List the speakers?',
-        },
-      ],
-    },
-  ],
+  },
 });
+
+console.log('Sending request...');
+const response = await streamText({
+  model,
+  messages: [{ role: 'user', content: 'Please describe what a quantum computer is.' }],
+});
+console.log('Response received...');
+
+// Print all properties of the response object
+console.log('Response keys:', Object.keys(response));
+
+// Use response.baseStream to read stream data
+const reader = response.baseStream.getReader();
+let result = '';
+console.log('Starting to read stream data...');
+
+let count = 0;
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) {
+    console.log('Stream data reading completed');
+    break;
+  }
+  
+  count++;
+  console.log(`Reading chunk ${count}:`, value);
+  console.log('Data type:', typeof value);
+  
+  // If value is ArrayBuffer or ArrayBufferView
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) {
+    result += new TextDecoder().decode(value);
+  }
+  // If value is an object
+  else if (typeof value === 'object' && value !== null) {
+    result += JSON.stringify(value);
+  }
+  // If value is a string
+  else if (typeof value === 'string') {
+    result += value;
+  }
+  // Other types
+  else {
+    result += String(value);
+  }
+}
+
+console.log('Final result:', result);
 ```

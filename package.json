@@ -1,6 +1,6 @@
 {
-  "name": "@openrouter/ai-sdk-provider",
-  "version": "0.4.6",
+  "name": "@burncloud/ai-sdk-provider",
+  "version": "1.0.1",
   "license": "Apache-2.0",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -61,13 +61,13 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/OpenRouterTeam/ai-sdk-provider",
+  "homepage": "https://github.com/burncloud/ai-sdk-provider",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OpenRouterTeam/ai-sdk-provider.git"
+    "url": "git+https://github.com/burncloud/ai-sdk-provider.git"
   },
   "bugs": {
-    "url": "https://github.com/OpenRouterTeam/ai-sdk-provider/issues"
+    "url": "https://github.com/burncloud/ai-sdk-provider/issues"
   },
   "keywords": [
     "ai"
